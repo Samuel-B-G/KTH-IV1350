@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import integration.ItemInfoDTO;
 
-public class ItemTest {
+class ItemTest {
 
 	@Test
 	public void testIncreaseQuantityToPositive() {

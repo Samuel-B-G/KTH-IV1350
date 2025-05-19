@@ -16,7 +16,7 @@ public class DatabaseCreator {
 
 	public DatabaseCreator() {
 		this.accountingSystem = new AccountingSystem();
-		this.inventorySystem = new InventorySystem();
+		this.inventorySystem = InventorySystem.getInventorySystem();
 		this.discountDatabase = new DiscountDatabase();
 	}
 

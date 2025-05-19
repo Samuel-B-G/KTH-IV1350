@@ -14,16 +14,17 @@ class InventorySystemTest {
 
 	@BeforeEach
 	public void setUp() {
-		this.inventorySystem = new InventorySystem();
+		this.inventorySystem = InventorySystem.getInventorySystem();
 	}
 
 	@AfterEach
 	public void tearDown() {
+		inventorySystem.emptyInventory();
 		this.inventorySystem = null;
 	}
 
 	@Test
-	public void testAddItemValidIdentifier() {
+	public void testAddItemValidIdentifier() throws ItemDoesNotExistException {
 		ItemInfoDTO itemInfoDTO = new ItemInfoDTO("identifier", "name", "description", 0, 0);
 		int quantity = 1;
 		inventorySystem.addItem(itemInfoDTO, quantity);
@@ -34,10 +35,16 @@ class InventorySystemTest {
 	}
 
 	@Test
-	public void testGetItemInfoInvalidIdentifier() {
-		ItemInfoDTO result = inventorySystem.getItemInfo("doesNotExist");
+	public void testAddItemInvalidIdentifierException() {
+		String itemIdentifier = "doesNotExist";
 
-		assertEquals(null, result, "Did not return null as expected");
+		try {
+			inventorySystem.getItemInfo(itemIdentifier);
+			fail("Non-existing item was returned.");
+		} catch (ItemDoesNotExistException e) {
+			String expectedMsg = "No item with the item identifier '"+itemIdentifier+"' exists in the inventory system.";
+			assertEquals(e.getMessage(), expectedMsg, "Wrong exception message.");
+		}
 	}
 
 	@Test
@@ -47,12 +54,14 @@ class InventorySystemTest {
 		inventorySystem.addItem(itemInfoDTO, quantity);
 
 		int result = inventorySystem.getQuantity("identifier");
+		
+		System.out.println(result);
 
 		assertEquals(1, result, "Incorrect quantity returned, did it get the wrong item?");
 	}
 
 	@Test
-	public void updateInventory() {
+	public void updateInventory() throws ItemDoesNotExistException {
 		ItemInfoDTO itemInfoDTO = new ItemInfoDTO("identifier", "name", "description", 0, 0);
 		int quantity = 1;
 		inventorySystem.addItem(itemInfoDTO, quantity);

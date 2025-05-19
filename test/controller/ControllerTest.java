@@ -7,6 +7,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import integration.DatabaseCreator;
+import integration.DiscountDatabase;
+import integration.ItemDoesNotExistException;
 import integration.ItemInfoDTO;
 import model.ItemAndRunningTotalDTO;
 import model.RequestedItemDTO;
@@ -23,6 +25,7 @@ class ControllerTest {
 
 	@AfterEach
 	public void tearDown() {
+		contr.inventorySystem.emptyInventory();
 		this.creator = null;
 		this.contr = null;
 	}
@@ -35,7 +38,7 @@ class ControllerTest {
 	}
 
 	@Test
-	public void testAddItemNoQuantitySpecified() {
+	public void testAddItemNoQuantitySpecified() throws OperationFailedException {
 		ItemInfoDTO itemInfoDTO = new ItemInfoDTO("identifier", "name", "description", 0.1, 10);
 		contr.inventorySystem.addItem(itemInfoDTO, 0);
 
@@ -47,7 +50,7 @@ class ControllerTest {
 	}
 
 	@Test
-	public void testAddItemValidIdentifier() {
+	public void testAddItemValidIdentifier() throws OperationFailedException {
 		ItemInfoDTO itemInfoDTO = new ItemInfoDTO("identifier", "name", "description", 0.1, 10);
 		contr.inventorySystem.addItem(itemInfoDTO, 0);
 
@@ -59,22 +62,14 @@ class ControllerTest {
 	}
 
 	@Test
-	public void testAddItemInvalidIdentifier() {
-		contr.newSale();
-		RequestedItemDTO requestedItemDTO = new RequestedItemDTO("identifier", 1);
-		ItemAndRunningTotalDTO item = contr.addItem(requestedItemDTO);
-		assertEquals(null, item, "Item was returned despite invalid identifier");
-	}
-
-	@Test
-	public void testEndSaleNoItems() {
+	public void testEndSaleNoItems() throws OperationFailedException {
 		contr.newSale();
 		double result = contr.endSale();
 		assertEquals(0, result, "Incorrect final amount was returned");
 	}
 
 	@Test
-	public void testEndSale() {
+	public void testEndSale() throws OperationFailedException {
 		contr.newSale();
 
 		ItemInfoDTO itemInfoDTO = new ItemInfoDTO("identifier", "name", "description", 0.1, 10);
@@ -89,14 +84,7 @@ class ControllerTest {
 	}
 
 	@Test
-	public void testEndSaleNull() {
-		contr.sale = null;
-		double result = contr.endSale();
-		assertEquals(null, result, "Null was not returned as expected");
-	}
-
-	@Test
-	public void testPayCorrectAmount() {
+	public void testPayCorrectAmount() throws OperationFailedException {
 		ItemInfoDTO itemInfoDTO = new ItemInfoDTO("identifier", "name", "description", 0.1, 10);
 		contr.inventorySystem.addItem(itemInfoDTO, 0);
 
@@ -112,7 +100,7 @@ class ControllerTest {
 	}
 
 	@Test
-	public void testPayTooMuch() {
+	public void testPayTooMuch() throws OperationFailedException {
 		ItemInfoDTO itemInfoDTO = new ItemInfoDTO("identifier", "name", "description", 0.1, 10);
 		contr.inventorySystem.addItem(itemInfoDTO, 0);
 
@@ -128,7 +116,7 @@ class ControllerTest {
 	}
 
 	@Test
-	public void testPayTooLittle() {
+	public void testPayTooLittle() throws OperationFailedException {
 		ItemInfoDTO itemInfoDTO = new ItemInfoDTO("identifier", "name", "description", 0.1, 10);
 		contr.inventorySystem.addItem(itemInfoDTO, 0);
 
@@ -142,13 +130,75 @@ class ControllerTest {
 		double result = contr.pay(10);
 		assertEquals(-1, result, "Change is incorrect");
 	}
+	
+	@Test
+	public void testCheckDiscountNoDatabaseConnectionException() {
+		contr.newSale();
+		String customerID = "error";
+		try {
+			contr.checkDiscount(customerID);
+			fail("Discount was found despite discount database not existing.");
+		} catch (OperationFailedException e) {
+			assertEquals(e.getMessage(), "Could not contact the database.", "Wrong exception message.");
+		}
+	}
+	
+	@Test
+	public void testGetDiscountValidCustomerID() throws ItemDoesNotExistException, OperationFailedException {
+		ItemInfoDTO itemInfoDTO = new ItemInfoDTO("identifier", "name", "description", 0, 10);
+		contr.inventorySystem.addItem(itemInfoDTO, 0);
+		
+		contr.newSale();
+		
+		String customerID = "money";
+		
+		RequestedItemDTO requestedItemDTO = new RequestedItemDTO("identifier", 10);
+		contr.addItem(requestedItemDTO);
+		
+		contr.checkDiscount(customerID);
+		double result = contr.sale.getDiscountedAmount();
+		double expectedResult = 10;
+		assertEquals(expectedResult, result, result+" was returned instead of the expected "+expectedResult);
+	}
+	
+	@Test
+	public void testGetDiscountTotalAmount() throws ItemDoesNotExistException, OperationFailedException {
+		ItemInfoDTO itemInfoDTO = new ItemInfoDTO("identifier", "name", "description", 0.1, 10);
+		contr.inventorySystem.addItem(itemInfoDTO, 0);
+		
+		contr.newSale();
+		
+		String customerID = "doesNotExist";
+		RequestedItemDTO requestedItemDTO = new RequestedItemDTO("identifier", 50);
+		contr.addItem(requestedItemDTO);
+		contr.checkDiscount(customerID);
+		double result = contr.sale.getDiscountedAmount();
+		double expectedResult = 55;
+		assertEquals(expectedResult, result, result+" was returned instead of the expected "+expectedResult);
+	}
+	
+	@Test
+	public void testEndSaleNoExistingSaleException() {
+		contr.sale = null;
+		try {
+			contr.endSale();
+			fail("Sale was ended despite no sale existing.");
+		} catch (OperationFailedException e) {
+			assertEquals(e.getMessage(), "No active sale.", "Wrong exception message.");
+		}
+	}
 
-	/*
-	 * Skipped for now as alternative flow 9a is not included in Seminar 3
-	 * 
-	 * @Test public void checkDiscount() {
-	 * 
-	 * }
-	 */
+	@Test
+	public void testAddItemInvalidIdentifierException() {
+		contr.newSale();
+		RequestedItemDTO requestedItemDTO = new RequestedItemDTO("doesNotExist");
+		try {
+			contr.addItem(requestedItemDTO).getPrice();
+			fail("Managed to add a nonexistent item");
+		} catch (OperationFailedException e) {
+			System.out.println(e.getMessage());
+			assertEquals(e.getMessage(), "Item was not found.", "Wrong exception message.");
+		}
+	}
 
 }

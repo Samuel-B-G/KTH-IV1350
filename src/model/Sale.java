@@ -4,9 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import integration.AccountingSystem;
+import integration.DiscountCustomerIdentification;
 import integration.DiscountDatabase;
+import integration.DiscountItemList;
+import integration.DiscountTotalAmount;
 import integration.InventorySystem;
+import integration.ItemDoesNotExistException;
 import integration.ItemInfoDTO;
+import integration.NoDatabaseConnectionException;
 import integration.Printer;
 import integration.Register;
 
@@ -15,12 +20,14 @@ import integration.Register;
  */
 
 public class Sale {
+	private List<SaleObserver> saleObservers = new ArrayList<SaleObserver>();
+	
 	private double totalAmount;
 	private double discountedAmount;
 	private double totalVAT;
 	private List<Item> itemList;
 	private Payment payment;
-	private Receipt receipt;
+	private ReceiptDTO receipt;
 
 	/**
 	 * Creates a new instance, representing the details of the sale.
@@ -37,15 +44,17 @@ public class Sale {
 	 * Attempts to search and add an item as specified in the requestedItemDTO from
 	 * the inventorySystem to an active sale.
 	 * 
-	 * @param inventorySystem  The <code>InventorySystem</code> containing all
+	 * @param inventorySystem  The {@link InventorySystem} containing all
 	 *                         items.
-	 * @param requestedItemDTO The <code>RequestedItemDTO</code> containing the
+	 * @param requestedItemDTO The {@link RequestedItemDTO} containing the
 	 *                         specifications of the item to add.
 	 * 
 	 * @return The item that was added by the function.
+	 * 
+	 * @throws ItemDoesNotExistException if the searched for item does not exist in the inventory system.
 	 */
 
-	public ItemAndRunningTotalDTO addItem(InventorySystem inventorySystem, RequestedItemDTO requestedItemDTO) {
+	public ItemAndRunningTotalDTO addItem(InventorySystem inventorySystem, RequestedItemDTO requestedItemDTO) throws ItemDoesNotExistException {
 		String itemIdentifier = requestedItemDTO.getItemIdentifier();
 		int quantity = requestedItemDTO.getQuantity();
 
@@ -53,15 +62,42 @@ public class Sale {
 
 		if (item == null)
 			item = addNewItem(inventorySystem, itemIdentifier);
-		if (item == null)
-			return null;
 
 		increaseQuantity(item, quantity);
 		updateSaleTotalAmounts(item, quantity);
 
-		ItemAndRunningTotalDTO newItemDTO = new ItemAndRunningTotalDTO(item.getItemInfo(), quantity, totalAmount,
-				totalVAT);
+		ItemAndRunningTotalDTO newItemDTO = new ItemAndRunningTotalDTO(item.getItemInfo(), quantity, totalAmount, totalVAT);
+		notifyObserversNewItem(newItemDTO);
 		return newItemDTO;
+	}
+	
+	private void notifyObserversNewItem(ItemAndRunningTotalDTO newItemDTO) {
+		for (SaleObserver obs : saleObservers) {
+			obs.newItem(newItemDTO);
+		}
+	}
+	
+	private void notifyObserversEndSale(double amount) {
+		for (SaleObserver obs : saleObservers) {
+			obs.endSale(amount);
+		}
+	}
+	
+	private void notifyObserversPayment(double change) {
+		for (SaleObserver obs : saleObservers) {
+			obs.payment(change);
+		}
+	}
+	
+	/**
+	 * Adds a {@link SaleObserver} object to the list of objects to be notified by 
+	 * the observer.
+	 * 
+	 * @param saleObserver The SaleObserver object.
+	 */
+	
+	public void addSaleObserver(SaleObserver saleObserver) {
+		saleObservers.add(saleObserver);
 	}
 
 	private void updateSaleTotalAmounts(Item item, int quantity) {
@@ -84,13 +120,25 @@ public class Sale {
 		return null;
 	}
 
-	private Item addNewItem(InventorySystem inventorySystem, String itemIdentifier) {
+	private Item addNewItem(InventorySystem inventorySystem, String itemIdentifier) throws ItemDoesNotExistException {
 		ItemInfoDTO itemInfo = inventorySystem.getItemInfo(itemIdentifier);
 		if (itemInfo == null)
 			return null;
 		Item item = new Item(itemInfo);
 		itemList.add(item);
 		return item;
+	}
+	
+	/**
+	 * Returns the total amount of the sale and notifies all relevant objects of in the view of the ended sale.
+	 * 
+	 * @return The total amount of the sale.
+	 */
+	
+	public double endSale() {
+		double amountToPay = roundToTwoDecimals(calculateAmountToPay());
+		notifyObserversEndSale(amountToPay);
+		return amountToPay;
 	}
 
 	private void increaseQuantity(Item item, int quantity) {
@@ -121,12 +169,25 @@ public class Sale {
 	 *                         discountDatabase.
 	 * 
 	 * @return The change to give to the customer.
+	 * 
+	 * @throws NoDatabaseConnectionException if the database cannot be called.
 	 */
 
-	public void checkDiscount(DiscountDatabase discountDatabase, String customerID) {
-		SaleDTO saleDTO = createSaleDTO();
-
-		discountDatabase.addDiscount(customerID, saleDTO);
+	public void checkDiscount(DiscountDatabase discountDatabase, String customerID) throws NoDatabaseConnectionException {
+		DiscountDTO discountDTO = createDiscountDTO(customerID);
+		
+		double newDiscountedAmount = 0;
+		
+		discountDatabase.setDiscountStrategy(new DiscountCustomerIdentification());
+		newDiscountedAmount += totalAmount * discountDatabase.getDiscount(discountDTO);
+		discountDatabase.setDiscountStrategy(new DiscountTotalAmount());
+		newDiscountedAmount += totalAmount * discountDatabase.getDiscount(discountDTO);
+		discountDatabase.setDiscountStrategy(new DiscountItemList());
+		newDiscountedAmount += discountDatabase.getDiscount(discountDTO);
+		
+		this.discountedAmount = newDiscountedAmount;
+		
+		notifyObserversEndSale(roundToTwoDecimals(calculateAmountToPay()));
 	}
 
 	/**
@@ -140,14 +201,28 @@ public class Sale {
 
 	public double pay(double paidAmount) {
 		this.payment = new Payment(paidAmount);
-		double change = payment.calculateChange(totalAmount);
+		double amountToPay = totalAmount - discountedAmount;
+		double change = roundToTwoDecimals(payment.calculateChange(amountToPay));
 
-		SaleDTO saleDTO = createSaleDTO();
-
-		this.receipt = new Receipt(saleDTO, payment.getPaidAmount(), payment.getChange(), payment.getTimeOfSale());
-
+		this.receipt = createReceipt();
+		notifyObserversPayment(change);
 		return change;
 	}
+	
+	private ReceiptDTO createReceipt() {
+		SaleDTO saleDTO = createSaleDTO();
+		double finalAmount = roundToTwoDecimals(calculateAmountToPay());
+		double paidAmount = roundToTwoDecimals(payment.getPaidAmount());
+		double changeAmount = roundToTwoDecimals(payment.getChange());
+		ReceiptDTO receipt = new ReceiptDTO(saleDTO, finalAmount, paidAmount, changeAmount, payment.getTimeOfSale());
+		return receipt;
+	}
+	
+	/**
+	 * Adds the payment in the {@link Sale} object to the passed {@link Printer}
+	 * 
+	 * @param register The register the payment should be added to.
+	 */
 
 	public void addToRegister(Register register) {
 		payment.addToRegister(register);
@@ -184,6 +259,12 @@ public class Sale {
 		ItemDTO[] itemDTOArray = createItemDTOArray();
 		inventorySystem.updateInventory(itemDTOArray);
 	}
+	
+	private DiscountDTO createDiscountDTO(String customerID) {
+		ItemDTO[] itemDTOArray = createItemDTOArray();
+		DiscountDTO discountDTO = new DiscountDTO(customerID, totalAmount, itemDTOArray);
+		return discountDTO;
+	}
 
 	private SaleDTO createSaleDTO() {
 		ItemDTO[] itemDTOArray = createItemDTOArray();
@@ -203,9 +284,10 @@ public class Sale {
 	private ItemDTO createItemDTO(Item item) {
 		String name = item.getName();
 		String itemIdentifier = item.getItemIdentifier();
-		double priceAfterVAT = item.calculateIndividualPriceAfterVAT();
+		double priceAfterVAT = roundToTwoDecimals(item.calculateIndividualPriceAfterVAT());
 		int quantity = item.getQuantity();
-		ItemDTO itemDTO = new ItemDTO(name, itemIdentifier, priceAfterVAT, quantity);
+		double totalAmount = roundToTwoDecimals(priceAfterVAT * quantity);
+		ItemDTO itemDTO = new ItemDTO(name, itemIdentifier, totalAmount, priceAfterVAT, quantity);
 		return itemDTO;
 	}
 
@@ -247,5 +329,10 @@ public class Sale {
 
 	public List<Item> getItemList() {
 		return itemList;
+	}
+	
+	public double calculateAmountToPay() {
+		double amountToPay = totalAmount - discountedAmount;
+		return amountToPay;
 	}
 }

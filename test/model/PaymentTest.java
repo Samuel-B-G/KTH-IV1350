@@ -6,7 +6,7 @@ import java.time.LocalDate;
 
 import org.junit.jupiter.api.Test;
 
-public class PaymentTest {
+class PaymentTest {
 
 	@Test
 	public void testCreatePaymentCorrectDate() {

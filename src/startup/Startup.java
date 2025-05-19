@@ -15,7 +15,7 @@ public class Startup {
 		DatabaseCreator creator = new DatabaseCreator();
 		creator.fillInventorySystem();
 		Controller contr = new Controller(creator);
-		View view = new View(contr);
+		new View(contr);
 	}
 
 }

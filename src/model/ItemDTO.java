@@ -7,6 +7,7 @@ package model;
 public final class ItemDTO {
 	private final String name;
 	private final String itemIdentifier;
+	private final double totalAmount;
 	private final double priceWithVAT;
 	private final int quantity;
 
@@ -16,13 +17,15 @@ public final class ItemDTO {
 	 * 
 	 * @param name           The name of the item.
 	 * @param itemIdentifier The identifier of the item.
+	 * @param totalAmount The total sum of every one of this item.
 	 * @param priceWithVAT   The price including VAT for the item.
 	 * @param quantity       The quantity of the item.
 	 */
 
-	public ItemDTO(String name, String itemIdentifier, double priceWithVAT, int quantity) {
+	public ItemDTO(String name, String itemIdentifier, double totalAmount, double priceWithVAT, int quantity) {
 		this.name = name;
 		this.itemIdentifier = itemIdentifier;
+		this.totalAmount = totalAmount;
 		this.priceWithVAT = priceWithVAT;
 		this.quantity = quantity;
 	}
@@ -46,11 +49,21 @@ public final class ItemDTO {
 	public String getItemIdentifier() {
 		return itemIdentifier;
 	}
+	
+	/**
+	 * Returns the total amount of all of this item stored in the object.
+	 * 
+	 * @return The total amount.
+	 */
+
+	public double getTotalAmount() {
+		return totalAmount;
+	}
 
 	/**
 	 * Returns the price with VAT stored in the object.
 	 * 
-	 * @return The price with VAT
+	 * @return The price with VAT.
 	 */
 
 	public double getPriceWithVAT() {
