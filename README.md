@@ -1,1 +1,1 @@
-The finished program for Seminar 3 in the course IV1350.
+The finished program for Seminar 4 in the course IV1350.
