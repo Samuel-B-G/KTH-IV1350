@@ -43,6 +43,10 @@ public class View {
 		contr.addNewReceiptObserver(receiptFrame);
 	}
 	
+	/**
+	 * Performs a successful sample run of the program, starting a sale, adding an item, adding a discount and making a payment.
+	 */
+	
 	public void testRun() {
 		contr.newSale();
 		RequestedItemDTO requestedItemDTO = new RequestedItemDTO("abc123", 2);
@@ -78,6 +82,10 @@ public class View {
 			e.printStackTrace();
 		}
 	}
+	
+	/**
+	 * Performs a sample run encountering several exceptions, tries to end a sale despite no sale being active, adds a non-existing item, encounters a database connector error, and lastly inserts a string as payment.
+	 */
 	
 	public void testRunExceptions() {
 		try {
