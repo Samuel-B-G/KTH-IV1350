@@ -3,6 +3,9 @@ package view;
 import java.io.IOException;
 
 import controller.Controller;
+import controller.NoActiveSaleException;
+import controller.OperationFailedException;
+import model.RequestedItemDTO;
 import util.LogHandler;
 
 /**
@@ -38,6 +41,81 @@ public class View {
 		
 		ReceiptFrame receiptFrame = new ReceiptFrame();
 		contr.addNewReceiptObserver(receiptFrame);
+	}
+	
+	public void testRun() {
+		contr.newSale();
+		RequestedItemDTO requestedItemDTO = new RequestedItemDTO("abc123", 2);
+		try {
+			contr.addItem(requestedItemDTO);
+		} catch (OperationFailedException e) {
+			writeToLogAndUI(e.getMessage(), (Exception) e.getCause());
+		} catch (NoActiveSaleException e) {
+			e.printStackTrace();
+		}
+		try {
+			contr.endSale();
+		} catch (OperationFailedException e) {
+			writeToLogAndUI(e.getMessage(), (Exception) e.getCause());
+		} catch (NoActiveSaleException e) {
+			writeToLogAndUI(e.getMessage(), e);
+			e.printStackTrace();
+		}
+		try {
+			contr.checkDiscount("money");
+		} catch (OperationFailedException e) {
+			writeToLogAndUI(e.getMessage(), (Exception) e.getCause());
+		} catch (NoActiveSaleException e) {
+			writeToLogAndUI(e.getMessage(), e);
+			e.printStackTrace();
+		}
+		try {
+			contr.pay(200);
+		} catch (OperationFailedException e) {
+			writeToLogAndUI(e.getMessage(), (Exception) e.getCause());
+		} catch (NoActiveSaleException e) {
+			writeToLogAndUI(e.getMessage(), e);
+			e.printStackTrace();
+		}
+	}
+	
+	public void testRunExceptions() {
+		try {
+			contr.endSale();
+		} catch (NoActiveSaleException e) {
+			writeToLogAndUI(e.getMessage(), e);
+		} catch (OperationFailedException e) {
+			writeToLogAndUI(e.getMessage(), (Exception) e.getCause());
+		}
+		
+		contr.newSale();
+		RequestedItemDTO requestedItemDTO = new RequestedItemDTO("doesNotExist");
+		
+		try {
+			contr.addItem(requestedItemDTO);
+		} catch (NoActiveSaleException e) {
+			writeToLogAndUI(e.getMessage(), e);
+		} catch (OperationFailedException e) {
+			writeToLogAndUI(e.getMessage(), (Exception) e.getCause());
+		}
+		
+		try {
+			contr.checkDiscount("error");
+		} catch (NoActiveSaleException e) {
+			writeToLogAndUI(e.getMessage(), e);
+		} catch (OperationFailedException e) {
+			writeToLogAndUI(e.getMessage(), (Exception) e.getCause());
+		}
+		
+		try {
+			contr.pay(Integer.parseInt("wrongInput"));
+		} catch (NoActiveSaleException e) {
+			writeToLogAndUI(e.getMessage(), e);
+		} catch (OperationFailedException e) {
+			writeToLogAndUI(e.getMessage(), (Exception) e.getCause());
+		} catch (NumberFormatException e) {
+			writeToLogAndUI("Non-numeric characters found in input.", e);
+		}
 	}
 	
 	/**

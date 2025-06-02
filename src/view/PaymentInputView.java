@@ -67,21 +67,11 @@ class PaymentInputView {
 		}
 		catch (NumberFormatException e) {
 			IncorrectInputException exception = new IncorrectInputException("One or more non-numeric characters were inputted into a field expecting a numeric value.");
-			//String msg = "Non-numeric characters found in input.";
 			throw exception;
 		}
 		
 		contr.pay(payment);
 		
-		/*
-		try {
-			contr.pay(payment);
-		} catch (OperationFailedException e) {
-			saleSystemFrame.writeToLogAndUI(e.getMessage(), e);
-		} catch (NoActiveSaleException e) {
-			saleSystemFrame.writeToLogAndUI(e.getMessage(), e);
-		}
-		*/
 		amount.eraseText();
 	}
 	

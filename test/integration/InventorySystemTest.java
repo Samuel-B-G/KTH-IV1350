@@ -54,8 +54,6 @@ class InventorySystemTest {
 		inventorySystem.addItem(itemInfoDTO, quantity);
 
 		int result = inventorySystem.getQuantity("identifier");
-		
-		System.out.println(result);
 
 		assertEquals(1, result, "Incorrect quantity returned, did it get the wrong item?");
 	}

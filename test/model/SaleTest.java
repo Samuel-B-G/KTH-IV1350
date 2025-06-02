@@ -20,6 +20,7 @@ class SaleTest {
 	public void setUp() {
 		this.sale = new Sale();
 		this.inventorySystem = InventorySystem.getInventorySystem();
+		inventorySystem.emptyInventory();
 		ItemInfoDTO itemInfoDTO = new ItemInfoDTO("identifier", "name", "description", 0.1, 10);
 		inventorySystem.addItem(itemInfoDTO, 1);
 	}
@@ -27,7 +28,6 @@ class SaleTest {
 	@AfterEach
 	public void tearDown() {
 		this.sale = null;
-		inventorySystem.emptyInventory();
 		this.inventorySystem = null;
 	}
 

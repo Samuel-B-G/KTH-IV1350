@@ -49,6 +49,8 @@ class TotalRevenueView implements TotalRevenueObserver {
 
 	@Override
 	public void updateTotalRevenue(double amount) {
-		totalRevenue.setText("Total Revenue: " + amount + " SEK");
+		String msg = "Total Revenue: " + amount + " SEK";
+		System.out.println(msg);
+		totalRevenue.setText(msg);
 	}
 }
