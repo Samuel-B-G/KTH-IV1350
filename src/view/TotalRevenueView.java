@@ -5,13 +5,13 @@ import java.awt.Color;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import model.TotalRevenueObserver;
+import util.TotalRevenueTemplate;
 
 /**
  * This class represents the view which shows the total revenue.
  */
 
-class TotalRevenueView implements TotalRevenueObserver {
+class TotalRevenueView extends TotalRevenueTemplate {
 	private JPanel panel;
 	private JLabel totalRevenue;
 	
@@ -40,7 +40,7 @@ class TotalRevenueView implements TotalRevenueObserver {
 	/**
 	 * Adds the panel from this class to the passed {@link JPanel} object.
 	 * 
-	 * @param frame
+	 * @param frame The {@link JPanel} object that the view should be added to.
 	 */
 	
 	void add(JPanel frame) {
@@ -48,7 +48,14 @@ class TotalRevenueView implements TotalRevenueObserver {
 	}
 
 	@Override
-	public void updateTotalRevenue(double amount) {
-		totalRevenue.setText("Total Revenue: " + amount + " SEK");
+	protected void displayTotalIncome(double amount) {
+		String msg = "Total Revenue: " + amount + " SEK";
+		System.out.println(msg);
+		totalRevenue.setText(msg);
+	}
+
+	@Override
+	protected void handleErrors(Exception e) {
+		e.printStackTrace();
 	}
 }

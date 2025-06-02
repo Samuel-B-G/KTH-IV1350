@@ -4,11 +4,13 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import util.TotalRevenueTemplate;
+
 /**
  * This class represents the object that prints the total revenue to a text file.
  */
 
-class TotalRevenueFileOutput implements TotalRevenueObserver {
+class TotalRevenueFileOutput extends TotalRevenueTemplate {
 	private static final String LOG_FILE_NAME = "total-revenue.txt";
 	private PrintWriter logFile;
 	
@@ -33,7 +35,12 @@ class TotalRevenueFileOutput implements TotalRevenueObserver {
 	}
 
 	@Override
-	public void updateTotalRevenue(double amount) {
+	protected void displayTotalIncome(double amount) {
 		printToFile(amount);
+	}
+
+	@Override
+	protected void handleErrors(Exception e) {
+		e.printStackTrace();
 	}
 }

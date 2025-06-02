@@ -124,6 +124,7 @@ class SaleSystemFrame implements SaleObserver {
 		frame.revalidate();
 		frame.repaint();
 	}
+	
 	@Override
 	public void newItem(ItemAndRunningTotalDTO itemDTO) {
 		

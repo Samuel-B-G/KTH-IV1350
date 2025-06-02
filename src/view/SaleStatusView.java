@@ -35,25 +35,7 @@ class SaleStatusView implements SaleObserver {
 	void add(JFrame frame) {
 		frame.add(panel);
 	}
-	/*
-	@Override
-	public void noSale() {
-		panel.setBackground(new Color(230,60,60));
-		saleStatusLabel.setText("No Active Sale");
-	}
-
-	@Override
-	public void newSale() {
-		panel.setBackground(new Color(100,100,230));
-		saleStatusLabel.setText("Ongoing Sale");
-	}
-
-	@Override
-	public void payment() {
-		panel.setBackground(new Color(230,220,0));
-		saleStatusLabel.setText("Payment");
-	}
-*/
+	
 	public void discount() {
 		panel.setBackground(new Color(60,230,60));
 		saleStatusLabel.setText("Discount");

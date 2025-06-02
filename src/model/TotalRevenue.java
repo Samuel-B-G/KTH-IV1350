@@ -10,7 +10,6 @@ import java.util.List;
 
 public class TotalRevenue {
 	private List<TotalRevenueObserver> totalRevenueObservers = new ArrayList<TotalRevenueObserver>();
-	private double totalAmount;
 	
 	/**
 	 * Creates a new instance, representing the details of the total revenue.
@@ -23,7 +22,6 @@ public class TotalRevenue {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		this.totalAmount = 0;
 	}
 	
 	/**
@@ -33,14 +31,12 @@ public class TotalRevenue {
 	 */
 	
 	public void addToRevenue(double amount) {
-		totalAmount += amount;
-		this.totalAmount = (double) Math.round(totalAmount * 100) / 100;
-		notifyObservers();
+		notifyObservers(amount);
 	}
 	
-	private void notifyObservers() {
+	private void notifyObservers(double amount) {
 		for (TotalRevenueObserver obs : totalRevenueObservers) {
-			obs.updateTotalRevenue(totalAmount);
+			obs.updateTotalRevenue(amount);
 		}
 	}
 	
