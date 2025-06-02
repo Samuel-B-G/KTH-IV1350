@@ -1,4 +1,4 @@
-The finished program for Seminar 4 in the course IV1350.
+The finished program for Higher Grade Task 3 in the course IV1350.
 
 The following are the valid item identifiers that can be used when adding items.
 "abc123"  "def456"  "ghi789"  "aaa111"  "aab112"  "aac113"
