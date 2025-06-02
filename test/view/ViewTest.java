@@ -18,7 +18,7 @@ import controller.OperationFailedException;
 import integration.DatabaseCreator;
 import model.RequestedItemDTO;
 
-public class ViewTest {
+class ViewTest {
 	private ByteArrayOutputStream outContent;
 	private PrintStream originalSysOut;
 	
@@ -91,6 +91,7 @@ public class ViewTest {
 	public void noActiveSaleExceptionOutputTest() throws OperationFailedException {
 		try {
 			contr.endSale();
+			fail("Exception was not caught as expected.");
 		} catch (NoActiveSaleException e) {
 			view.writeToLogAndUI(e.getMessage(), e);
 			LocalDateTime now = LocalDateTime.now();
@@ -105,7 +106,8 @@ public class ViewTest {
 	@Test
 	public void incorrectInputExceptionOutputTest() throws NoActiveSaleException {
 		try {
-			double payment = Integer.parseInt("Test");
+			Integer.parseInt("Test");
+			fail("Exception was not caught as expected.");
 		}
 		catch (NumberFormatException exception) {
 			IncorrectInputException e = new IncorrectInputException("One or more non-numeric characters were inputted into a field expecting a numeric value.");

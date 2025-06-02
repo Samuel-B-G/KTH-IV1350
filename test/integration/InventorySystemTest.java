@@ -15,11 +15,11 @@ class InventorySystemTest {
 	@BeforeEach
 	public void setUp() {
 		this.inventorySystem = InventorySystem.getInventorySystem();
+		inventorySystem.emptyInventory();
 	}
 
 	@AfterEach
 	public void tearDown() {
-		inventorySystem.emptyInventory();
 		this.inventorySystem = null;
 	}
 

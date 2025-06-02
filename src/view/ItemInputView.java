@@ -1,5 +1,7 @@
 package view;
 
+import static org.junit.jupiter.api.Assertions.fail;
+
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -85,6 +87,7 @@ class ItemInputView {
 		public void actionPerformed(ActionEvent event) {
 			try {
 				addItem();
+				fail("Exception was not caught as expected.");
 			} catch (OperationFailedException e) {
 				saleSystemFrame.writeToLogAndUI(e.getMessage(), (Exception) e.getCause());
 			} catch (NoActiveSaleException e) {

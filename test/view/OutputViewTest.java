@@ -16,7 +16,7 @@ import integration.DatabaseCreator;
 import integration.ItemInfoDTO;
 import model.RequestedItemDTO;
 
-public class OutputViewTest {
+class OutputViewTest {
 	private ByteArrayOutputStream outContent;
 	private PrintStream originalSysOut;
 	

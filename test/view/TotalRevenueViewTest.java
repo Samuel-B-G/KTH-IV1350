@@ -16,7 +16,7 @@ import integration.DatabaseCreator;
 import integration.ItemInfoDTO;
 import model.RequestedItemDTO;
 
-public class TotalRevenueViewTest {
+class TotalRevenueViewTest {
 	private ByteArrayOutputStream outContent;
 	private PrintStream originalSysOut;
 	
@@ -46,8 +46,8 @@ public class TotalRevenueViewTest {
 	}
 	
 	@Test
-	public void testUpdateTotalRevenue() throws OperationFailedException, NoActiveSaleException {
-		ItemInfoDTO itemInfoDTO = new ItemInfoDTO("identifier", "name", "description", 0.2, 10);
+	public void testUpdateTotalRevenueOutput() throws OperationFailedException, NoActiveSaleException {
+		ItemInfoDTO itemInfoDTO = new ItemInfoDTO("identifier", "name", "description", 0.1, 10);
 		creator.getInventorySystem().addItem(itemInfoDTO, 0);
 
 		RequestedItemDTO requestedItemDTO = new RequestedItemDTO("identifier");
@@ -57,14 +57,14 @@ public class TotalRevenueViewTest {
 		contr.pay(20);
 		String result = outContent.toString();
 		
-		String expected = "Total Revenue: " + 12.0 + " SEK";
+		String expected = "Total Revenue: " + 11.0 + " SEK";
 		assertTrue(result.contains(expected), "Expected String '"+expected+"' but instead received String '"+result+"'");
 		
 		contr.newSale();
 		contr.addItem(requestedItemDTO);
 		contr.pay(20);
 		result = outContent.toString();
-		expected = "Total Revenue: " + 24.0 + " SEK";
+		expected = "Total Revenue: " + 22.0 + " SEK";
 		assertTrue(result.contains(expected), "Expected String '"+expected+"' but instead received String '"+result+"'");
 	}
 }

@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
 import controller.Controller;
 import integration.DatabaseCreator;
 
-public class StartupTest {
+class StartupTest {
 	private ByteArrayOutputStream outContent;
 	private PrintStream originalSysOut;
 	
@@ -77,7 +77,7 @@ public class StartupTest {
 		String expected = "Total cost (incl VAT): 137.5 SEK";
 		assertTrue(result.contains(expected), "Expected String '"+expected+"' but instead received String '"+result+"'");
 	}
-	/*
+	
 	@Test
 	public void discountOutputTest() {
 		String result = outContent.toString();
@@ -85,7 +85,7 @@ public class StartupTest {
 		String expected = "Total cost (incl VAT): 123.75 SEK";
 		assertTrue(result.contains(expected), "Expected String '"+expected+"' but instead received String '"+result+"'");
 	}
-	*/
+	
 	@Test
 	public void paymentOutputTest() {
 		String result = outContent.toString();
